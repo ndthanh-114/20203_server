@@ -20,8 +20,8 @@ export const createPost = async (req, res) => {
     try{
         await newPost.save();
 
-        const posts = await PostMessage.find().sort( { _id: -1 } );
-        res.status(200).json(posts);
+        // const posts = await PostMessage.find().sort( { _id: -1 } );
+        res.status(200).json(newPost);
     }catch(error){
       
         res.status(409).json({message: error.message})
