@@ -4,10 +4,24 @@ import mongoose from 'mongoose'
 export const getPosts = async (req, res) => {
     try{
         const posts = await PostMessage.find().sort( { _id: -1 } );
-        
-        res.status(200).json(posts);
+        posts.forEach(post => post.comments = [])
+        res.status(200).json(posts || []);
     } catch(error){
         res.status(404).json({message: error.message})
+    }
+}
+
+export const fetchPostComment = async (req, res) => {
+    const {id} = req.params;
+    try{
+        if(!mongoose.Types.ObjectId.isValid(id)) return res.status(404).send('No id');
+    
+        const post = await PostMessage.findById(id);
+    
+        res.status(200).json(post.comments)
+
+    }catch(error){
+        res.status(404).json({message: error.message});
     }
 }
 
@@ -39,7 +53,8 @@ export const deletePost = async (req, res) => {
 }
 
 export const likePost = async (req, res) => {
-    const {id} = req.params;
+    try{
+        const {id} = req.params;
 
     if(!req.userId) return res.json({message: 'Không xác thực'})
     
@@ -58,6 +73,9 @@ export const likePost = async (req, res) => {
     const updatedPost = await PostMessage.findByIdAndUpdate(id, post , {new: true})
 
     res.status(200).json(updatedPost)
+    }catch(error){
+        res.status(404).json({message: error.message})
+    }
 }
 
 export const commentPost = async (req, res) => {
