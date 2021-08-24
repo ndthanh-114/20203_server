@@ -7,7 +7,7 @@ import http from 'http'
 
 import userRoutes from './routes/users.js'
 import postsRoutes from './routes/posts.js'
-import { getIdPostsSocket, likePostSocket, commentPostSocket } from './handlesockets/posts.js'
+import { getIdPostsSocket,subCommentPostSocket, likePostSocket, fetchPostExceptComment,commentPostSocket } from './handlesockets/posts.js'
 
 const ENDPOINT = 'http://localhost:3000/'
 const app = express()
@@ -23,6 +23,7 @@ app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }))
 app.use(cors())
 
 io.on('connect', socket => {
+  socket.removeAllListeners()
   console.log('We have a connection')
   socket.on('home', ({ }, callback) => {
     socket.join('home')
@@ -31,8 +32,17 @@ io.on('connect', socket => {
     });
   })
 
-  socket.on('newPost', ({ email }, callback) => {
-    socket.broadcast.to('home').emit('notification', { text: `Có bài đăng mới từ ${email}` });
+  socket.on('newPost', async ({ postId }, callback) => {
+    
+    const {error, post} = await fetchPostExceptComment(postId);
+    
+    socket.broadcast.to('home').emit('notification', { error,  post});
+    callback();
+  })
+
+  socket.on('increSubCmt', async ({ idPost, i }, callback) => {
+    
+    io.to(idPost).emit('newSubCmt', { i });
     callback();
   })
 
@@ -91,12 +101,27 @@ io.on('connect', socket => {
   //   callback()
   // })
 
-  socket.on('send comment', async ({ email, idPost, comment }, callback) => {
-    const { error } = await commentPostSocket(`${email}: ${comment}`, idPost)
+  socket.on('send comment', async ({ email, idPost, data, prevId }, callback) => {
+    // console.log(email, idPost, data, prevId)
+    const { error, result } = await commentPostSocket(`${email}::: ${data}`, idPost, prevId)
     if (error) {
       return callback(error)
     }
-    io.to(idPost).emit('comment', { newComment: `${email}: ${comment}` })
+    console.log(result)
+    io.to(idPost).emit('comment', { result })
+
+    callback()
+  })
+
+  socket.on('send subComment', async ({ email, idPost, data, prevId }, callback) => {
+    // console.log(email, idPost, data, prevId)
+    const { error, result } = await subCommentPostSocket(`${email}::: ${data}`, idPost, prevId)
+    if (error) {
+      return callback(error)
+    }
+    console.log(result)
+    // // console.log(idComment)
+    io.to(idPost).emit('subComment', { result })
 
     callback()
   })

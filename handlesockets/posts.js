@@ -40,6 +40,19 @@ export const getIdPostsSocket = async () => {
 //     res.status(200).json({message: 'success'})
 // }
 
+export const fetchPostExceptComment = async (postId) => {
+    try{
+        if(!mongoose.Types.ObjectId.isValid(postId)) return {error: 'Invalid post'}
+    
+        const post = await PostMessage.findById(postId);
+        // console.log(post)
+        return {post};
+
+    }catch(error){
+        return {error: 'Invalid post'}
+    }
+}
+
 export const likePostSocket = async (userLikeId, postId) => {
 
 
@@ -60,16 +73,71 @@ export const likePostSocket = async (userLikeId, postId) => {
     return updatedPost.likes
 }
 
-export const commentPostSocket = async (messageOfUser, postId) => {
+export const commentPostSocket = async (messageOfUser, postId, prevId) => {
 
     try {
+        
         const post = await PostMessage.findById(postId);
-
-        post.comments.push(messageOfUser);
-
+        const cache = {
+            data: messageOfUser,
+            prevId: prevId || 'root'
+        }
+        const res = post.comments.push(cache);
+        const result = post.comments[Number(res) -1];
+        // console.log(idComment);
         const updatedPost = await PostMessage.findByIdAndUpdate(postId, post, { new: true });
+        
+        return {result}
+    } catch (e) {
+        return { error: 'Bài viết này hiện đã không tồn tại' }
+    }
+};
 
-        return updatedPost
+export const subCommentPostSocket = async (messageOfUser, postId, prevId) => {
+    console.log(prevId);
+    try {
+        
+        const post = await PostMessage.findById(postId);
+        let index = -1;
+        //find in root comment
+        for(let i = 0; i<post.comments.length;i++){
+            console.log(post.comments[i]._id)
+            if(String(post.comments[i]._id) === String(prevId)){
+                index = i;
+            }
+        }
+        console.log('root', index);
+        if(index !== -1){
+            post.comments[index].totalSubcomment +=1;
+            const cache = {
+                data: messageOfUser,
+                prevCommentId: post.comments[index]._id,
+            };
+            let res = post.subComments.push(cache);
+            const result = post.subComments[res-1];
+            await PostMessage.findByIdAndUpdate(postId, post, { new: true });
+
+            return {result};
+        }
+        //find in subComments
+        for(let i = 0; i<post.subComments.length;i++){
+            if(post.subComments[i]._id === String(prevId)){
+                index = i;
+            }
+        }
+        console.log('sub', index)
+        if(index !== -1){
+            post.subComments[index].totalSubcomment +=1;
+            const cache = {
+                data: messageOfUser,
+                prevCommentId: post.comments[index]._id,
+            };
+            let res = post.subComments.push(cache);
+            const result = post.subComments[res-1];
+            await PostMessage.findByIdAndUpdate(postId, post, { new: true });
+            return {result};
+        }
+        return { error: 'Bài viết này hiện đã không tồn tại' }
     } catch (e) {
         return { error: 'Bài viết này hiện đã không tồn tại' }
     }

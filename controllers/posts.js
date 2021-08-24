@@ -3,7 +3,7 @@ import mongoose from 'mongoose'
 
 export const getPosts = async (req, res) => {
     try{
-        const posts = await PostMessage.find().sort( { _id: -1 } );
+        const posts = await PostMessage.find().sort( { _id: -1 } ).select({ subComments: 0, comments: 0 });
         posts.forEach(post => post.comments = [])
         res.status(200).json(posts || []);
     } catch(error){
@@ -16,7 +16,7 @@ export const fetchPostComment = async (req, res) => {
     try{
         if(!mongoose.Types.ObjectId.isValid(id)) return res.status(404).send('No id');
     
-        const post = await PostMessage.findById(id);
+        const post = await PostMessage.findById(id).select({ creator: 0, message: 0, selectedFile: 0, likes: 0 });
     
         res.status(200).json(post.comments)
 
@@ -24,6 +24,25 @@ export const fetchPostComment = async (req, res) => {
         res.status(404).json({message: error.message});
     }
 }
+
+export const fetchSubCommentOfPost = async (req, res) => {
+    const {idPost, idComment} = req.params;
+    // console.log('vao', idComment)
+    try{
+        if(!mongoose.Types.ObjectId.isValid(idPost)) return res.status(404).send('No id');
+    
+        const post = await PostMessage.findById(idPost).select({ creator: 0, message: 0, selectedFile: 0, likes: 0 });
+        
+        const result = post.subComments.filter(subCmt => String(subCmt.prevCommentId) === String(idComment));
+        // console.log(result, post.subComments);
+        res.status(200).json(result)
+
+    }catch(error){
+        res.status(404).json({message: error.message});
+    }
+}
+
+
 
 export const createPost = async (req, res) => {
     const body = req.body;
