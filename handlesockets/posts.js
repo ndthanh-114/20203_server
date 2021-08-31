@@ -94,19 +94,19 @@ export const commentPostSocket = async (messageOfUser, postId, prevId) => {
 };
 
 export const subCommentPostSocket = async (messageOfUser, postId, prevId) => {
-    console.log(prevId);
+    // console.log(prevId);
     try {
         
         const post = await PostMessage.findById(postId);
         let index = -1;
         //find in root comment
         for(let i = 0; i<post.comments.length;i++){
-            console.log(post.comments[i]._id)
+            // console.log(post.comments[i]._id)
             if(String(post.comments[i]._id) === String(prevId)){
                 index = i;
             }
         }
-        console.log('root', index);
+        // console.log('root', index);
         if(index !== -1){
             post.comments[index].totalSubcomment +=1;
             const cache = {
@@ -125,7 +125,7 @@ export const subCommentPostSocket = async (messageOfUser, postId, prevId) => {
                 index = i;
             }
         }
-        console.log('sub', index)
+        // console.log('sub', index)
         if(index !== -1){
             post.subComments[index].totalSubcomment +=1;
             const cache = {

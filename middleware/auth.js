@@ -9,6 +9,8 @@ const auth = (req, res, next) => {
         if(token){
             decodeData = jwt.verify(token, 'test');
             req.userId = decodeData?.id;
+            req.email = decodeData?.email;
+
         }
         next()
     }catch(error){
