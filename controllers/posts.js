@@ -3,8 +3,16 @@ import mongoose from 'mongoose'
 
 export const getPosts = async (req, res) => {
     try{
-        const posts = await PostMessage.find().sort( { _id: -1 } ).select({ subComments: 0, comments: 0 });
-        posts.forEach(post => post.comments = [])
+        const posts = await PostMessage.find().sort( { _id: -1 } );
+        posts.forEach(post => {
+            let lengCmt = post.comments.length + post.subComments.length;
+            post.comments = []
+            post.subComments =[]
+            // post.lengCmt = lengCmt;
+            post._doc.lengCmt = lengCmt;
+            
+        })
+        console.log(posts[0])
         res.status(200).json(posts || []);
     } catch(error){
         res.status(404).json({message: error.message})

@@ -4,6 +4,7 @@ import bodyParser from 'body-parser'
 import mongoose from 'mongoose'
 import { Server } from 'socket.io'
 import http from 'http'
+import jwt from 'jsonwebtoken'
 
 import userRoutes from './routes/users.js'
 import postsRoutes from './routes/posts.js'
@@ -21,6 +22,29 @@ const io = new Server(server, {
 app.use(bodyParser.json({ limit: "30mb", extended: true }))
 app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }))
 app.use(cors())
+
+io.use((socket, next) => {
+
+  try {
+    const token = socket.handshake.auth.token;
+    const userID = socket.handshake.auth.userID;
+    // console.log(token)
+    let decodeData;
+    if (token) {
+      decodeData = jwt.verify(token, 'test');
+      console.log(userID, decodeData)
+      if(userID == decodeData?.id){
+        next()
+      }else{
+        const err = new Error("có lỗi xảy ra vui lòng đăng nhập lại");
+        next(err);
+      }
+      
+    }
+  } catch (error) {
+      console.log(error)
+  }
+});
 
 io.on('connect', socket => {
   socket.removeAllListeners()
@@ -121,6 +145,7 @@ io.on('connect', socket => {
   })
 
   socket.on('send interaction', async ({ email, idPost, data, prevId, indexPost, dataCmtPrev, type, indexOfSubCmt, idCmtPrev }, callback) => {
+    socket.broadcast.to('home').emit('res cmt', { idPost });
     const { error, post } = await fetchPostExceptComment(idPost)
     if (error) {
       return callback(error)
@@ -163,6 +188,8 @@ io.on('connect', socket => {
   })
 
   socket.on('send likeInteraction', async ({ email, indexPost, idPost, title, data, isLike }, callback) => {
+    socket.broadcast.to('home').emit('res like', { data });
+
     const { error, post } = await fetchPostExceptComment(idPost)
     if (error) {
       return callback(error)
