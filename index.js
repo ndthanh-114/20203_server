@@ -32,7 +32,7 @@ io.use((socket, next) => {
     let decodeData;
     if (token) {
       decodeData = jwt.verify(token, 'test');
-      console.log(userID, decodeData)
+      // console.log(userID, decodeData)
       if(userID == decodeData?.id){
         next()
       }else{
@@ -76,32 +76,32 @@ io.on('connect', socket => {
   })
 
 
-  socket.on('join', async ({ postId, user }, callback) => {
-    if (!user) return callback({
-      error: "Lỗi"
-    });
-    try {
+  // socket.on('join', async ({ postId, user }, callback) => {
+  //   if (!user) return callback({
+  //     error: "Lỗi"
+  //   });
+  //   try {
 
-      // const clients = io.of('/').sockets;
-      // const allSockets = [ ...clients.keys() ];
-      // // console.log(clients);
-      // let count =0;
-      // for (let key of clients){
-      //     count++;
-      //     key[1].join(post._id)
-      // }
-      // allSockets.forEach(sk => sk.join(post._id))
-      socket.join(postId)
-      callback({
-        post: `joined ${postId}`
-      });
-    } catch (e) {
-      console.log(e)
-      callback({
-        error: "Lỗi join"
-      });
-    }
-  })
+  //     // const clients = io.of('/').sockets;
+  //     // const allSockets = [ ...clients.keys() ];
+  //     // // console.log(clients);
+  //     // let count =0;
+  //     // for (let key of clients){
+  //     //     count++;
+  //     //     key[1].join(post._id)
+  //     // }
+  //     // allSockets.forEach(sk => sk.join(post._id))
+  //     socket.join(postId)
+  //     callback({
+  //       post: `joined ${postId}`
+  //     });
+  //   } catch (e) {
+  //     console.log(e)
+  //     callback({
+  //       error: "Lỗi join"
+  //     });
+  //   }
+  // })
 
   // socket.on('joinB', async ({ postId, user }, callback) => {
   //   if (!user) return callback({
@@ -240,6 +240,11 @@ io.on('connect', socket => {
     // // console.log(idComment)
     io.to('home').emit('subComment', { result, index: i, idPost })
 
+    callback()
+  })
+
+  socket.on('deleted post', ({creatorPostDeleted ,indexPostDeleted ,idPostDeleted ,dataDeleted}, callback) => {
+    socket.broadcast.to('home').emit('received postDeleted', {creatorPostDeleted ,indexPostDeleted ,idPostDeleted ,dataDeleted});
     callback()
   })
 

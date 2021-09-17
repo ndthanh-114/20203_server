@@ -12,7 +12,7 @@ export const getPosts = async (req, res) => {
             post._doc.lengCmt = lengCmt;
             
         })
-        console.log(posts[0])
+        // console.log(posts[0])
         res.status(200).json(posts || []);
     } catch(error){
         res.status(404).json({message: error.message})
