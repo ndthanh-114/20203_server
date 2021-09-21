@@ -45,7 +45,7 @@ export const fetchPostExceptComment = async (postId) => {
         if(!mongoose.Types.ObjectId.isValid(postId)) return {error: 'Invalid post'}
     
         const post = await PostMessage.findById(postId);
-        // console.log(post)
+        post._doc.lengCmt = 0;
         return {post};
 
     }catch(error){
