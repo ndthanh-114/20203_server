@@ -177,9 +177,9 @@ io.on('connect', socket => {
       if (mySet.has(username)) {
         // console.log(key[1].id)
         if (type === "COMMENT") {
-          socket.broadcast.to(key[1].id).emit('interaction', { title: post?.message, email, data, indexPost, type });
+          socket.broadcast.to(key[1].id).emit('interaction', { title: post?.message, idPost, email, data, indexPost, type });
         } else if (type === "SUB_COMMENT") {
-          socket.broadcast.to(key[1].id).emit('interaction', { title: post?.message, email, data, indexPost, idCmtPrev, type, dataCmtPrev, indexOfSubCmt });
+          socket.broadcast.to(key[1].id).emit('interaction', { title: post?.message, idPost, email, data, indexPost, idCmtPrev, type, dataCmtPrev, indexOfSubCmt });
         }
       }
     }
@@ -223,7 +223,7 @@ io.on('connect', socket => {
       // console.log(username);
       if (mySet.has(username)) {
         // console.log(key[1].id)
-        socket.broadcast.to(key[1].id).emit('interaction', { title, email, data, indexPost, type: "LIKE" });
+        socket.broadcast.to(key[1].id).emit('interaction', { title, idPost, email, data, indexPost, type: "LIKE" });
       }
     }
     // allSockets.forEach(sk => sk.join(post._id))
